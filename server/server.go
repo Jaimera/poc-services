@@ -12,7 +12,7 @@ func Run(app application.App) {
 	server := newServer(app)
 	route.Register(app, server)
 
-	err := server.Start(":8080")
+	err := server.Start(app.HttpPort)
 	if err != nil {
 		app.Logger.Errorf("Could not start the server. Error: %s.", err.Error())
 	}

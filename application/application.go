@@ -1,7 +1,9 @@
 package application
 
 import (
+	"context"
 	"fmt"
+	"github.com/jaimera/poc-services/broker"
 	"github.com/jaimera/poc-services/domain/contract"
 	"github.com/jaimera/poc-services/repository"
 	"github.com/sirupsen/logrus"
@@ -16,6 +18,8 @@ type App struct {
 	DataManager contract.DataManager
 	HTTPClient  *http.Client
 	services    *AppService
+	KafkaServer contract.PortBroker // broker.KafkaConnection
+	HttpPort    string
 }
 
 // BuildApp initilialize everything the application needs: server, db, logger...
@@ -26,7 +30,7 @@ func BuildApp() App {
 		"Version": "1.0",
 	})
 
-	logger.Infof("Log is working already!")
+	logger.Infof("Initializing APP!")
 
 	httpClient := new(http.Client)
 
@@ -35,7 +39,7 @@ func BuildApp() App {
 		"root",
 		"root",
 		"db_poc",
-		"db",
+		"localhost", // db;localhost
 		3306,
 	)
 	endAsErr(err, "Could not connect to database.")
@@ -45,14 +49,25 @@ func BuildApp() App {
 		Logger:      logger,
 		DataManager: db,
 		HTTPClient:  httpClient,
+		HttpPort:    ":8081",
 	}
 
 	app.services = NewAppService(&app)
 
+	app.KafkaServer = broker.NewKafkaConnection(
+		logger,
+		"localhost:9092", // kafka:29092;localhost:9092
+		"poc-services",
+		0,
+		"tcp",
+	)
+
+	go app.KafkaServer.Consume(context.Background(), app.GetServices().Port())
+
 	return app
 }
 
-func (app App) Services() *AppService {
+func (app App) GetServices() *AppService {
 	return app.services
 }
 

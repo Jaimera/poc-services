@@ -1,6 +1,7 @@
 package application
 
 import (
+	"github.com/jaimera/poc-services/broker"
 	"github.com/jaimera/poc-services/domain/contract"
 	"github.com/jaimera/poc-services/domain/service/portservice"
 )
@@ -9,6 +10,7 @@ import (
 type AppService struct {
 	app         *App
 	portService contract.PortService
+	kafkaServer broker.KafkaConnection
 }
 
 func NewAppService(app *App) *AppService {
@@ -18,5 +20,5 @@ func NewAppService(app *App) *AppService {
 }
 
 func (svc AppService) Port() contract.PortService {
-	return portservice.NewPortService(svc.app.DataManager, svc.app.Logger)
+	return portservice.NewPortService(svc.app.DataManager, svc.app.Logger, svc.app.KafkaServer)
 }

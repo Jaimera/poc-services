@@ -58,6 +58,20 @@ const query = `
 		;
 	`
 
+const fetch = `
+	select id
+	        , slug
+			, name
+			, city
+			, country
+			, alias
+			, regions
+			, province
+			, timezone
+			, unlocs
+			, code from db_poc.tb_port where slug = ?;
+`
+
 func (r portRepository) Upsert(context context.Context, port entity.Port) (uint32, error) {
 
 	tx, err := r.conn.Begin()
@@ -94,7 +108,37 @@ func (r portRepository) Upsert(context context.Context, port entity.Port) (uint3
 	return uint32(id), nil
 }
 
-func (r portRepository) FetchByCode(context context.Context, code string) (*entity.Port, error) {
+func (r portRepository) FetchByCode(context context.Context, code string) (entity.Port, error) {
 
-	return nil, nil
+	row := r.conn.QueryRow(fetch, code)
+
+	port, err := r.parseEntity(row)
+	if err != nil {
+		return entity.Port{}, err
+	}
+
+	return port, nil
+}
+
+func (r portRepository) parseEntity(s *sql.Row) (entity.Port, error) {
+
+	var port entity.Port
+	err := s.Scan(
+		&port.ID,
+		&port.Slug,
+		&port.Name,
+		&port.City,
+		&port.Country,
+		&port.Alias,
+		&port.Regions,
+		&port.Province,
+		&port.Timezone,
+		&port.Unlocs,
+		&port.Code,
+	)
+	if err != nil {
+		return entity.Port{}, err
+	}
+
+	return port, nil
 }

@@ -17,6 +17,6 @@ type RepoManager interface {
 }
 
 type PortRepository interface {
-	FetchByCode(context context.Context, code string) (*entity.Port, error)
+	FetchByCode(context context.Context, code string) (entity.Port, error)
 	Upsert(context context.Context, port entity.Port) (uint32, error)
 }

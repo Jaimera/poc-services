@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"github.com/jaimera/poc-services/domain/contract"
 	"github.com/jaimera/poc-services/domain/dto"
 	"github.com/jaimera/poc-services/server/utils"
@@ -9,22 +8,24 @@ import (
 	"net/http"
 )
 
-// Handles a fetch of port by code
-func HandleGetPorts(portService contract.PortService) func(ctx echo.Context) error {
+// HandleGetPorts fetch for a port by it's code
+func HandleGetPort(portService contract.PortService) func(ctx echo.Context) error {
 	return func(ctx echo.Context) error {
-		ct := ctx.(context.Context)
+		ct := ctx.Request().Context()
 
 		code := ctx.Param("code")
 		port, err := portService.GetByCode(ct, code)
 		if err != nil {
-			return ctx.String(http.StatusNotFound, "")
+			return ctx.String(http.StatusNotFound, "Not found")
 		}
+
+		// parse to dto
 
 		return ctx.JSON(http.StatusOK, port)
 	}
 }
 
-// Handles ports.json insert
+// HandleInsertPort receives a ports.json and attempts to queue
 func HandleInsertPort(portService contract.PortService) func(ctx echo.Context) error {
 	return func(ctx echo.Context) error {
 		var ports []dto.PortDto
@@ -41,11 +42,8 @@ func HandleInsertPort(portService contract.PortService) func(ctx echo.Context) e
 			return ctx.String(http.StatusBadRequest, "")
 		}
 
-		err = portService.Insert(ct, ports)
-		if err != nil {
-			return ctx.String(http.StatusBadRequest, "")
-		}
+		go portService.Queue(ct, ports)
 
-		return ctx.String(http.StatusCreated, "OK")
+		return ctx.String(http.StatusOK, "Json Enqueued")
 	}
 }

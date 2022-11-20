@@ -14,6 +14,6 @@ func Register(app application.App, server *echo.Echo) {
 	root := server.Group("/api/v1")
 
 	port := root.Group("/ports")
-	port.GET("", handler.HandleGetPorts(app.Services().Port()))
-	port.POST("", handler.HandleInsertPort(app.Services().Port()))
+	port.GET("/:code", handler.HandleGetPort(app.GetServices().Port()))
+	port.POST("", handler.HandleInsertPort(app.GetServices().Port()))
 }
