@@ -39,7 +39,7 @@ func BuildApp() App {
 		"root",
 		"root",
 		"db_poc",
-		"localhost", // db;localhost
+		"db",
 		3306,
 	)
 	endAsErr(err, "Could not connect to database.")
@@ -49,14 +49,16 @@ func BuildApp() App {
 		Logger:      logger,
 		DataManager: db,
 		HTTPClient:  httpClient,
-		HttpPort:    ":8081",
+		HttpPort:    ":8080",
 	}
 
+	// init services
 	app.services = NewAppService(&app)
 
+	// init kafka configuration
 	app.KafkaServer = broker.NewKafkaConnection(
 		logger,
-		"localhost:9092", // kafka:29092;localhost:9092
+		"kafka:29092",
 		"poc-services",
 		0,
 		"tcp",
